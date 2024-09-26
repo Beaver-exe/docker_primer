@@ -1,13 +1,34 @@
 version: '3.8'
+
 services:
   redis:
     image: "redis:alpine"
     ports:
-      - "6379:6379"
-  # TODO: add your code here (delete this line and follow the indent conventions)
+      - "6379:6379" # Mapping the Redis port
+
   app:
-    # TODO: you will need to add to this
+    build: ./backend # Path to backend Dockerfile
     environment:
-      - REDIS_HOST=redis
+      - REDIS_HOST=redis # Redis hostname (service name in Compose)
+      - REDIS_PORT=6379 # Port for Redis
+    ports:
+      - "9900:9900" # Map the backend to localhost:5000
+    depends_on:
+      - redis # Ensure Redis starts before the backend
+    networks:
+      - app-network
+
   frontend:
-    # TODO: you will need to add to this
+    build: ./frontend # Path to frontend Dockerfile
+    ports:
+      - "3901:3000" # Map external port 3901 to internal port 3000
+    environment:
+      - REACT_APP_BACKEND_URL=http://app:5000 # URL to connect the frontend to the backend
+    depends_on:
+      - app # Ensure the backend starts before the frontend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
